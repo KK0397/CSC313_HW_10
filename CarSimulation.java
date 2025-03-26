@@ -296,5 +296,48 @@ class Car {
         // Apply friction to slow down the car naturally
         speed *= friction;
     }
+
+    public void render(Terrain terrain) {
+        // Get the heights of each wheel
+        float frontLeftWheelY = terrain.getTerrainHeightAt(x - 0.9f, z + 1.5f);
+        float frontRightWheelY = terrain.getTerrainHeightAt(x + 0.9f, z + 1.5f);
+        float rearLeftWheelY = terrain.getTerrainHeightAt(x - 0.9f, z - 1.5f);
+        float rearRightWheelY = terrain.getTerrainHeightAt(x + 0.9f, z - 1.5f);
+
+        // Calculate the average height of the car body (based on wheel heights)
+        float averageHeight = (frontLeftWheelY + frontRightWheelY + rearLeftWheelY + rearRightWheelY) / 4.0f;
+
+        // Car body dimensions
+        float carBodyHeight = 0.5f;     // The height of the car body
+
+        // Adjust the height of the car body to be above the wheels
+        // The car body is raised by half of its height so the bottom aligns with the wheels
+        float carBodyOffset = 4.0f * carBodyHeight + carBodyHeight / 2.0f;
+
+        // Calculate pitch (forward/backward tilt) and roll (side tilt)
+        float pitch = (frontLeftWheelY + frontRightWheelY) / 2.0f - (rearLeftWheelY + rearRightWheelY) / 2.0f;
+        float roll = (frontLeftWheelY + rearLeftWheelY) / 2.0f - (frontRightWheelY + rearRightWheelY) / 2.0f;
+
+        // Apply the calculated pitch, roll, and average height to the car body
+        GL11.glPushMatrix();
+
+        // Translate the car body to the average height plus the offset to position it above the wheels
+        GL11.glTranslatef(x , averageHeight + carBodyOffset, z);
+
+        // Rotate the car for pitch (tilt forward/backward) and roll (tilt left/right)
+        GL11.glRotatef(roll * 10.0f, 0, 0, 1);  // Roll around the Z-axis
+        GL11.glRotatef(pitch * 10.0f, 1, 0, 0);     // Pitch around the X-axis
+
+        // Rotate the car in the direction it's facing
+        GL11.glRotatef(angle, 0, 1, 0);
+
+        // Render the car body
+        renderCarBody();    // Call the updated renderCarBody method
+
+        // Render the wheels
+        renderWheels(terrain);  // Render the wheels based on terrain
+
+        GL11.glPopMatrix();     // Restore the transformation state
+    }
 }
 
